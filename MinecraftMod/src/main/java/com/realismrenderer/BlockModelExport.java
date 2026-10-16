@@ -1,4 +1,4 @@
-package com.passthrough.realism;
+package com.realismrenderer;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.passthrough.realism.mixin.GlTextureAccessor;
+import com.realismrenderer.mixin.GlTextureAccessor;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
@@ -79,7 +79,7 @@ final class BlockModelExport {
     ByteBuffer atlas(MinecraftClient mc) {
         var texture = mc.getTextureManager().getTexture(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE);
         if (!(texture.getGlTexture() instanceof GlTexture gl)) return null;
-        int id = ((GlTextureAccessor) gl).passthrough$getGlId();
+        int id = ((GlTextureAccessor) gl).realism$getGlId();
         com.mojang.blaze3d.opengl.GlStateManager._bindTexture(id);
         int w = GL11.glGetTexLevelParameteri(GL11.GL_TEXTURE_2D, 0, GL11.GL_TEXTURE_WIDTH);
         int h = GL11.glGetTexLevelParameteri(GL11.GL_TEXTURE_2D, 0, GL11.GL_TEXTURE_HEIGHT);

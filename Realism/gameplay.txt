@@ -1,4 +1,4 @@
-# PassThrough Realism - 30 second gameplay film (format: see Rendering/Gameplay.cs).
+# Realism Renderer - 30 second gameplay film (format: see Rendering/Gameplay.cs).
 # Record (test client running on a copy of the world, see README):
 #   dotnet run --project Realism -c Release -- --live --no-launch --gameplay Realism/gameplay.txt --out gameplay.mp4
 # Look angles are Minecraft's: yaw 0 = south, 90 = west, 180 = north, -90 = east; pitch positive = down.

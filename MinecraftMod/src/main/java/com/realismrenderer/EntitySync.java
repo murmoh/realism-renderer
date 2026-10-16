@@ -1,4 +1,4 @@
-package com.passthrough.realism;
+package com.realismrenderer;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -9,8 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import com.passthrough.realism.mixin.LivingEntityRendererInvoker;
-import com.passthrough.realism.mixin.ModelPartAccessor;
+import com.realismrenderer.mixin.LivingEntityRendererInvoker;
+import com.realismrenderer.mixin.ModelPartAccessor;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.render.entity.LivingEntityRenderer;
@@ -92,9 +92,9 @@ public final class EntitySync {
                 // Exactly LivingEntityRenderer.render's positioning.
                 float g = state.baseScale;
                 ms.scale(g, g, g);
-                ((LivingEntityRendererInvoker) renderer).passthrough$setupTransforms(state, ms, state.bodyYaw, g);
+                ((LivingEntityRendererInvoker) renderer).realism$setupTransforms(state, ms, state.bodyYaw, g);
                 ms.scale(-1.0F, -1.0F, 1.0F);
-                ((LivingEntityRendererInvoker) renderer).passthrough$scale(state, ms);
+                ((LivingEntityRendererInvoker) renderer).realism$scale(state, ms);
                 ms.translate(0.0F, -1.501F, 0.0F);
                 var model = renderer.getModel();
                 model.setAngles(state);
@@ -110,7 +110,7 @@ public final class EntitySync {
                 // Extra layers, drawn by Minecraft into the recorder (same matrices as LivingEntityRenderer uses).
                 capture.begin(mc, send);
                 if (!state.invisibleToPlayer)
-                    for (var feature : ((LivingEntityRendererInvoker) renderer).passthrough$features()) {
+                    for (var feature : ((LivingEntityRendererInvoker) renderer).realism$features()) {
                         try {
                             ((net.minecraft.client.render.entity.feature.FeatureRenderer) feature).render(ms, capture, 0xF000F0, state, state.relativeHeadYaw, state.pitch);
                         } catch (RuntimeException ignored) { } // one odd layer doesn't lose the mob
@@ -140,7 +140,7 @@ public final class EntitySync {
             ms.peek().getPositionMatrix().get(m);
             out.add(m);
         } else out.add(null);
-        for (ModelPart child : ((ModelPartAccessor) (Object) part).passthrough$children().values()) collect(child, ms, visible, out);
+        for (ModelPart child : ((ModelPartAccessor) (Object) part).realism$children().values()) collect(child, ms, visible, out);
         ms.pop();
     }
 
@@ -159,7 +159,7 @@ public final class EntitySync {
         int size = 16 + typeBytes.length;
         for (int i = 0; i < parts.size(); i++) {
             size += 8 + names.get(i).length() * 3 + 4 + 36;
-            for (ModelPart.Cuboid c : ((ModelPartAccessor) (Object) parts.get(i)).passthrough$cuboids()) size += 28 + c.sides.length * (12 + 4 * 20);
+            for (ModelPart.Cuboid c : ((ModelPartAccessor) (Object) parts.get(i)).realism$cuboids()) size += 28 + c.sides.length * (12 + 4 * 20);
         }
         ByteBuffer m = ByteBuffer.allocate(8 + size).order(ByteOrder.LITTLE_ENDIAN);
         m.putInt(MSG_MODEL).putInt(0);
@@ -170,7 +170,7 @@ public final class EntitySync {
             var t = parts.get(i).getDefaultTransform();
             m.putFloat(t.x()).putFloat(t.y()).putFloat(t.z()).putFloat(t.pitch()).putFloat(t.yaw()).putFloat(t.roll())
                 .putFloat(t.xScale()).putFloat(t.yScale()).putFloat(t.zScale());
-            var cuboids = ((ModelPartAccessor) (Object) parts.get(i)).passthrough$cuboids();
+            var cuboids = ((ModelPartAccessor) (Object) parts.get(i)).realism$cuboids();
             m.putInt(cuboids.size());
             for (ModelPart.Cuboid c : cuboids) {
                 m.putFloat(c.minX).putFloat(c.minY).putFloat(c.minZ).putFloat(c.maxX).putFloat(c.maxY).putFloat(c.maxZ);
@@ -192,7 +192,7 @@ public final class EntitySync {
         out.add(part);
         names.add(name);
         parents.add(parent);
-        for (var child : ((ModelPartAccessor) (Object) part).passthrough$children().entrySet())
+        for (var child : ((ModelPartAccessor) (Object) part).realism$children().entrySet())
             flatten(child.getValue(), child.getKey(), index, out, names, parents);
     }
 
@@ -228,9 +228,9 @@ public final class EntitySync {
 
         private int textureOf(net.minecraft.client.render.RenderLayer layer) {
             try {
-                var phases = ((com.passthrough.realism.mixin.MultiPhaseAccessor) (Object) layer).passthrough$phases();
-                var base = ((com.passthrough.realism.mixin.MultiPhaseParametersAccessor) (Object) phases).passthrough$texture();
-                var id = ((com.passthrough.realism.mixin.TextureBaseInvoker) base).passthrough$getId();
+                var phases = ((com.realismrenderer.mixin.MultiPhaseAccessor) (Object) layer).realism$phases();
+                var base = ((com.realismrenderer.mixin.MultiPhaseParametersAccessor) (Object) phases).realism$texture();
+                var id = ((com.realismrenderer.mixin.TextureBaseInvoker) base).realism$getId();
                 if (id.isEmpty()) return 0;
                 if (id.get().getPath().startsWith("textures/atlas/")) return -1; // items and blocks: the block atlas
                 return EntitySync.this.texture(mc, id.get(), send);

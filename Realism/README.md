@@ -1,4 +1,4 @@
-# PassThrough Realism
+# Realism Renderer
 
 A realistic C# renderer for Minecraft terrain, inspired by [SkyCraft](https://github.com/chasmlol/SkyCraft).
 Minecraft decides *what* the world is; this program decides *how it looks*.
@@ -32,7 +32,7 @@ Like SkyCraft: Minecraft runs the game, this renderer draws it.
    This launches Minecraft 1.21.5 + Fabric with the bridge mod (offline singleplayer, your real saves) straight
    into that world, then the renderer syncs with it. Leave out the world name to get the title screen.
    Add `--no-launch` if you'd rather start Minecraft yourself from the official launcher (Fabric 1.21.5
-   profile with `passthrough-realism-bridge-0.1.0.jar` and Fabric API in `%APPDATA%\.minecraft\mods`).
+   profile with `realism-renderer-0.1.0.jar` and Fabric API in `%APPDATA%\.minecraft\mods`).
 
 Play from the renderer window: it captures the mouse and drives the Minecraft player: WASD move, Space jump,
 Shift sneak, Ctrl sprint, mouse look, left click mine/attack, right click place/use, middle click pick block,
@@ -48,7 +48,7 @@ over any remaining steps. **V** switches to a third-person camera that shows you
 head turn, arm swing, sneaking) mirrors Minecraft.
 
 How it works: the mod (`MinecraftMod/`) writes into a memory-mapped file
-`%LOCALAPPDATA%\PassThroughRealism\bridge.bin`: a header with the camera state (written every frame) and a
+`%LOCALAPPDATA%\RealismRenderer\bridge.bin`: a header with the camera state (written every frame) and a
 64 MB ring buffer of messages: chunk loaded (full block data), chunk unloaded, block changed. The renderer
 (`Realism/Live/MinecraftBridge.cs`, which also documents the byte layout) applies them on a background thread
 and re-meshes only the affected chunks. Only Minecraft's loaded chunks are shown, so the view distance follows

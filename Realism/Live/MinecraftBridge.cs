@@ -10,7 +10,7 @@ namespace Realism.Live;
 
 /// <summary>
 /// Shared-memory layout, written by the Fabric mod (MinecraftMod/.../Bridge.java) and read here.
-/// All values little-endian. The file lives at %LOCALAPPDATA%\PassThroughRealism\bridge.bin.
+/// All values little-endian. The file lives at %LOCALAPPDATA%\RealismRenderer\bridge.bin.
 ///
 ///   Header (4096 bytes)
 ///     0  int  magic 'PTRB'          16 long writePos (writer)      40 long readerHeartbeat (unix ms, reader)
@@ -67,7 +67,7 @@ public static class BridgeProtocol
 
     // PTR_BRIDGE_DIR points at a separate bridge (the isolated test client); otherwise the shared default.
     public static string FilePath => Environment.GetEnvironmentVariable("PTR_BRIDGE_DIR") is { Length: > 0 } dir ? Path.Combine(dir, "bridge.bin") : Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PassThroughRealism", "bridge.bin");
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "RealismRenderer", "bridge.bin");
 }
 
 /// <summary>What the Minecraft camera is doing right now.</summary>

@@ -1,4 +1,4 @@
-package com.passthrough.realism;
+package com.realismrenderer;
 
 import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;

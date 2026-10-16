@@ -1,4 +1,4 @@
-package com.passthrough.realism;
+package com.realismrenderer;
 
 import java.io.IOException;
 import java.nio.file.Files;

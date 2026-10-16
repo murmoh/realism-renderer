@@ -1,6 +1,6 @@
-package com.passthrough.realism.mixin;
+package com.realismrenderer.mixin;
 
-import com.passthrough.realism.SmoothCollision;
+import com.realismrenderer.SmoothCollision;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.EntityShapeContext;
@@ -20,7 +20,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class BlockStateCollisionMixin {
     @Inject(method = "getCollisionShape(Lnet/minecraft/world/BlockView;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/ShapeContext;)Lnet/minecraft/util/shape/VoxelShape;",
             at = @At("HEAD"), cancellable = true)
-    private void passthrough$smoothCollision(BlockView world, BlockPos pos, ShapeContext context, CallbackInfoReturnable<VoxelShape> cir) {
+    private void realism$smoothCollision(BlockView world, BlockPos pos, ShapeContext context, CallbackInfoReturnable<VoxelShape> cir) {
         if (context instanceof EntityShapeContext esc && esc.getEntity() instanceof PlayerEntity && world instanceof World w) {
             VoxelShape shape = SmoothCollision.shapeFor(w, pos, (BlockState) (Object) this);
             if (shape != null) cir.setReturnValue(shape);

@@ -1,4 +1,4 @@
-package com.passthrough.realism;
+package com.realismrenderer;
 
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
@@ -84,7 +84,7 @@ public final class Bridge {
         try {
             // -Dptr.bridge.dir=... gives a separate bridge (used by the isolated test client).
             String custom = System.getProperty("ptr.bridge.dir");
-            File dir = custom != null ? new File(custom) : new File(System.getenv().getOrDefault("LOCALAPPDATA", System.getProperty("java.io.tmpdir")), "PassThroughRealism");
+            File dir = custom != null ? new File(custom) : new File(System.getenv().getOrDefault("LOCALAPPDATA", System.getProperty("java.io.tmpdir")), "RealismRenderer");
             dir.mkdirs();
             RandomAccessFile file = new RandomAccessFile(new File(dir, "bridge.bin"), "rw");
             if (file.length() < FILE_SIZE) file.setLength(FILE_SIZE);
@@ -94,7 +94,7 @@ public final class Bridge {
             b.putInt(OFF_VERSION, VERSION);
             b.putLong(OFF_RING, RING);
         } catch (IOException e) {
-            System.err.println("[PassThrough Realism] could not open bridge file: " + e);
+            System.err.println("[Realism Renderer] could not open bridge file: " + e);
         }
         buf = b;
     }
@@ -551,7 +551,7 @@ public final class Bridge {
      * hand and HUD, as covering. The window looks the same (it ignores alpha). Called once the world is drawn.
      */
     public void clearWorldAlpha(MinecraftClient mc) {
-        int tex = ((com.passthrough.realism.mixin.GlTextureAccessor) mc.getFramebuffer().getColorAttachment()).passthrough$getGlId();
+        int tex = ((com.realismrenderer.mixin.GlTextureAccessor) mc.getFramebuffer().getColorAttachment()).realism$getGlId();
         int prev = org.lwjgl.opengl.GL11.glGetInteger(org.lwjgl.opengl.GL30.GL_FRAMEBUFFER_BINDING);
         if (alphaFbo == 0) alphaFbo = org.lwjgl.opengl.GL30.glGenFramebuffers();
         org.lwjgl.opengl.GL30.glBindFramebuffer(org.lwjgl.opengl.GL30.GL_FRAMEBUFFER, alphaFbo);
@@ -596,8 +596,8 @@ public final class Bridge {
 
     private void alphaPass(net.minecraft.client.gl.Framebuffer fb, boolean hand) {
         int w = fb.textureWidth, h = fb.textureHeight;
-        int color = ((com.passthrough.realism.mixin.GlTextureAccessor) fb.getColorAttachment()).passthrough$getGlId();
-        int depth = ((com.passthrough.realism.mixin.GlTextureAccessor) fb.getDepthAttachment()).passthrough$getGlId();
+        int color = ((com.realismrenderer.mixin.GlTextureAccessor) fb.getColorAttachment()).realism$getGlId();
+        int depth = ((com.realismrenderer.mixin.GlTextureAccessor) fb.getDepthAttachment()).realism$getGlId();
         if (handProgram == 0) {
             String vs = "#version 150\nvoid main() { vec2 p = vec2((gl_VertexID << 1) & 2, gl_VertexID & 2) * 2.0 - 1.0; gl_Position = vec4(p, 0.9999, 1.0); }";
             handProgram = link(vs, "#version 150\nout vec4 c; void main() { c = vec4(0.0, 0.0, 0.0, 1.0); }");
@@ -713,7 +713,7 @@ public final class Bridge {
         int w = fb.textureWidth, h = fb.textureHeight;
         if (w <= 0 || h <= 0 || (long) w * h * 4 > GUI_SLOT) return;
         int slot = (int) ((guiFrame + 1) & 1);
-        int id = ((com.passthrough.realism.mixin.GlTextureAccessor) fb.getColorAttachment()).passthrough$getGlId();
+        int id = ((com.realismrenderer.mixin.GlTextureAccessor) fb.getColorAttachment()).realism$getGlId();
         ByteBuffer dst = buf.slice((int) (GUI_BASE + slot * GUI_SLOT), w * h * 4);
         com.mojang.blaze3d.opengl.GlStateManager._bindTexture(id);
         org.lwjgl.opengl.GL11.glPixelStorei(org.lwjgl.opengl.GL11.GL_PACK_ALIGNMENT, 4);
@@ -732,10 +732,10 @@ public final class Bridge {
         int kind = p.getInt();
         switch (kind) {
             case 0 -> mc.keyboard.onKey(win, p.getInt(), p.getInt(), p.getInt(), p.getInt());
-            case 1 -> ((com.passthrough.realism.mixin.KeyboardInvoker) mc.keyboard).passthrough$onChar(win, p.getInt(), p.getInt());
-            case 2 -> ((com.passthrough.realism.mixin.MouseInvoker) mc.mouse).passthrough$onMouseButton(win, p.getInt(), p.getInt(), p.getInt());
-            case 3 -> ((com.passthrough.realism.mixin.MouseInvoker) mc.mouse).passthrough$onCursorPos(win, p.getFloat(), p.getFloat());
-            case 4 -> ((com.passthrough.realism.mixin.MouseInvoker) mc.mouse).passthrough$onMouseScroll(win, p.getFloat(), p.getFloat());
+            case 1 -> ((com.realismrenderer.mixin.KeyboardInvoker) mc.keyboard).realism$onChar(win, p.getInt(), p.getInt());
+            case 2 -> ((com.realismrenderer.mixin.MouseInvoker) mc.mouse).realism$onMouseButton(win, p.getInt(), p.getInt(), p.getInt());
+            case 3 -> ((com.realismrenderer.mixin.MouseInvoker) mc.mouse).realism$onCursorPos(win, p.getFloat(), p.getFloat());
+            case 4 -> ((com.realismrenderer.mixin.MouseInvoker) mc.mouse).realism$onMouseScroll(win, p.getFloat(), p.getFloat());
             default -> { }
         }
     }

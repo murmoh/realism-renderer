@@ -1,16 +1,16 @@
 {
   "schemaVersion": 1,
-  "id": "passthrough_realism_bridge",
+  "id": "realism_renderer",
   "version": "${version}",
   "name": "Realism Renderer",
   "description": "Sends your world to the Realism Renderer app, which redraws it in real time as a realistic landscape. Requires the Realism Renderer app (Windows).",
   "license": "MIT",
   "environment": "client",
   "entrypoints": {
-    "client": ["com.passthrough.realism.BridgeMod"],
-    "modmenu": ["com.passthrough.realism.ModMenuIntegration"]
+    "client": ["com.realismrenderer.BridgeMod"],
+    "modmenu": ["com.realismrenderer.ModMenuIntegration"]
   },
-  "mixins": ["passthrough_realism.mixins.json"],
+  "mixins": ["realism_renderer.mixins.json"],
   "depends": {
     "fabricloader": ">=0.16.0",
     "minecraft": "~1.21.5",

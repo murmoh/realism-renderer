@@ -77,7 +77,7 @@ on the right.
 
 ## How it works
 
-The mod writes the world into a memory-mapped file (`%LOCALAPPDATA%\PassThroughRealism\bridge.bin`): the camera
+The mod writes the world into a memory-mapped file (`%LOCALAPPDATA%\RealismRenderer\bridge.bin`): the camera
 every frame, plus a ring buffer of chunks, block changes, entity poses, block models and the texture atlas. The
 renderer turns the blocks into smooth surfaces (Surface Nets over a blurred density field), meshes chunks on
 background threads, and draws them with physically based lighting, shadows, water, volumetrics and bloom. The

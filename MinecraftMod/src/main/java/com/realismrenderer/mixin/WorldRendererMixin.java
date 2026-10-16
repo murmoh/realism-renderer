@@ -1,6 +1,6 @@
-package com.passthrough.realism.mixin;
+package com.realismrenderer.mixin;
 
-import com.passthrough.realism.BridgeMod;
+import com.realismrenderer.BridgeMod;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.GameRenderer;
@@ -20,7 +20,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(WorldRenderer.class)
 public abstract class WorldRendererMixin {
     @Inject(method = "render", at = @At("HEAD"), cancellable = true)
-    private void passthrough$skipWorld(ObjectAllocator allocator, RenderTickCounter tickCounter, boolean renderBlockOutline, Camera camera,
+    private void realism$skipWorld(ObjectAllocator allocator, RenderTickCounter tickCounter, boolean renderBlockOutline, Camera camera,
                                        GameRenderer gameRenderer, Matrix4f positionMatrix, Matrix4f projectionMatrix, CallbackInfo ci) {
         var bridge = BridgeMod.bridge;
         if (bridge == null || !bridge.controlActive()) return;
@@ -34,7 +34,7 @@ public abstract class WorldRendererMixin {
 
     /** Playing in Minecraft's own window with the renderer following: mark the world as uncovered (see Bridge.clearWorldAlpha). */
     @Inject(method = "render", at = @At("RETURN"))
-    private void passthrough$afterWorld(ObjectAllocator allocator, RenderTickCounter tickCounter, boolean renderBlockOutline, Camera camera,
+    private void realism$afterWorld(ObjectAllocator allocator, RenderTickCounter tickCounter, boolean renderBlockOutline, Camera camera,
                                         GameRenderer gameRenderer, Matrix4f positionMatrix, Matrix4f projectionMatrix, CallbackInfo ci) {
         var bridge = BridgeMod.bridge;
         if (bridge != null && !bridge.controlActive() && bridge.readerAlive()) bridge.clearWorldAlpha(MinecraftClient.getInstance());

@@ -1,4 +1,4 @@
-# PassThrough Realism - 30 second cinematic of "New World (4)".
+# Realism Renderer - 30 second cinematic of "New World (4)".
 # Render: dotnet run --project Realism -c Release -- "New World (4)" --cinematic Realism/cinematic.txt --out film.mp4
 # (needs ffmpeg on PATH or REALISM_FFMPEG). Format: see Rendering/Cinematic.cs. Yaw 0 = +X (east), 90 = +Z (south).
 

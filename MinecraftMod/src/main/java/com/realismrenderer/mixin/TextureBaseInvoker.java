@@ -1,4 +1,4 @@
-package com.passthrough.realism.mixin;
+package com.realismrenderer.mixin;
 
 import java.util.Optional;
 
@@ -9,5 +9,5 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(RenderPhase.TextureBase.class)
 public interface TextureBaseInvoker {
-    @Invoker("getId") Optional<Identifier> passthrough$getId();
+    @Invoker("getId") Optional<Identifier> realism$getId();
 }

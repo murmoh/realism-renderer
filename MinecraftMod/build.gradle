@@ -3,8 +3,8 @@ plugins {
 }
 
 version = project.mod_version
-group = 'com.passthrough.realism'
-base { archivesName = 'passthrough-realism-bridge' }
+group = 'com.realismrenderer'
+base { archivesName = 'realism-renderer' }
 
 repositories {
     maven { url 'https://maven.terraformersmc.com/releases/' } // Mod Menu (optional settings button)

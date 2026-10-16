@@ -1,6 +1,6 @@
 {
   "required": true,
-  "package": "com.passthrough.realism.mixin",
+  "package": "com.realismrenderer.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": ["WorldMixin", "MouseMixin", "BlockStateCollisionMixin", "PushOutMixin", "GlTextureAccessor", "MouseInvoker",
              "KeyboardInvoker", "GameRendererMixin", "WorldRendererMixin", "VignetteMixin",

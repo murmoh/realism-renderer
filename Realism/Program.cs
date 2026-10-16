@@ -53,7 +53,7 @@ if (args.Contains("--live"))
     bool alreadyRunning = bridge.MinecraftRunning && string.IsNullOrEmpty(Environment.GetEnvironmentVariable("PTR_BRIDGE_DIR"));
     if (alreadyRunning) Console.WriteLine("Minecraft is already running.");
     else if (!args.Contains("--no-launch")) LaunchMinecraft(worldArg);
-    else Console.WriteLine("Waiting for Minecraft (start it with the PassThrough Realism Bridge mod)...");
+    else Console.WriteLine("Waiting for Minecraft (start it with the Realism Renderer mod)...");
     using var liveStreamer = new ChunkStreamer(liveWorld, radius, liveCam);
     liveStreamer.Meshed = bridge.SendCollision;
     bridge.Start(liveStreamer);
@@ -235,7 +235,7 @@ if (args.Contains("--live"))
     // --gameplay script.txt --out film.mp4: record scripted live play (test client) to a video.
     var play = args.SkipWhile(a => a != "--gameplay").Skip(1).FirstOrDefault() is { } gp ? Gameplay.Load(gp) : null;
     new App(liveStreamer, new AppOptions(liveCam, 0, 0, start.InWorld ? start.TimeOfDay : timeOfDay, (radius - 1) * 16f, screenshot,
-        "PassThrough Realism", 0, bridge, args.Contains("--third-person"), Play: play,
+        "Realism Renderer", 0, bridge, args.Contains("--third-person"), Play: play,
         FilmOut: args.SkipWhile(a => a != "--out").Skip(1).FirstOrDefault() ?? "gameplay.mp4")).Run();
     return 0;
 }
@@ -538,7 +538,7 @@ var film = filmScript != null ? Cinematic.Load(filmScript) : null;
 if (film != null) { var f0 = film.At(0); cam = f0.pos; }
 if (filmPreview != null) Directory.CreateDirectory(filmPreview);
 var app = new App(streamer, new AppOptions(cam, yaw, pitch, timeOfDay, (radius - 1) * 16f, screenshot,
-    $"PassThrough Realism - {level.Name}", Math.Max(weather, 0), Film: film, FilmOut: filmOut ?? "film.mp4", FilmPreviewDir: filmPreview));
+    $"Realism Renderer - {level.Name}", Math.Max(weather, 0), Film: film, FilmOut: filmOut ?? "film.mp4", FilmPreviewDir: filmPreview));
 app.Run();
 
 if (args.Contains("--blocks"))

@@ -1,6 +1,6 @@
-package com.passthrough.realism.mixin;
+package com.realismrenderer.mixin;
 
-import com.passthrough.realism.SmoothCollision;
+import com.realismrenderer.SmoothCollision;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import org.spongepowered.asm.mixin.Mixin;
@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(ClientPlayerEntity.class)
 public abstract class PushOutMixin {
     @Inject(method = "wouldCollideAt", at = @At("HEAD"), cancellable = true)
-    private void passthrough$ignoreWalkableGround(BlockPos pos, CallbackInfoReturnable<Boolean> cir) {
+    private void realism$ignoreWalkableGround(BlockPos pos, CallbackInfoReturnable<Boolean> cir) {
         if (!SmoothCollision.isEnabled()) return;
         ClientPlayerEntity self = (ClientPlayerEntity) (Object) this;
         // Not actually inside anything: no push, however steep the ground next to us. Otherwise vanilla handles it.

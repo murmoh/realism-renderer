@@ -1,4 +1,4 @@
-package com.passthrough.realism;
+package com.realismrenderer;
 
 import java.util.concurrent.ConcurrentHashMap;
 

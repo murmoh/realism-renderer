@@ -1,4 +1,4 @@
-package com.passthrough.realism;
+package com.realismrenderer;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.EntityType;

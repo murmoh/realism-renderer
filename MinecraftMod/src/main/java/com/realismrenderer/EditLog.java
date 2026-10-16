@@ -1,4 +1,4 @@
-package com.passthrough.realism;
+package com.realismrenderer;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -12,7 +12,7 @@ import net.minecraft.util.WorldSavePath;
 
 /**
  * Every block that went between empty and filled in play (digging, placing), kept per world and dimension and
- * saved next to the world (passthrough_edits_<dimension>.bin) so it survives restarts. The renderer draws these
+ * saved next to the world (realism_edits_<dimension>.bin) so it survives restarts. The renderer draws these
  * spots exactly (crisp placed blocks, open tunnels) instead of smoothing them away.
  */
 public final class EditLog {
@@ -33,22 +33,26 @@ public final class EditLog {
     public void ensure(MinecraftClient mc) {
         if (mc.world == null || mc.getServer() == null) return;
         String dim = mc.world.getRegistryKey().getValue().getPath();
-        Path target = mc.getServer().getSavePath(WorldSavePath.ROOT).resolve("passthrough_edits_" + dim + ".bin");
+        Path target = mc.getServer().getSavePath(WorldSavePath.ROOT).resolve("realism_edits_" + dim + ".bin");
         if (target.equals(file)) return;
         save(); // the previous world's edits
         LongOpenHashSet early = file == null ? new LongOpenHashSet(edits) : new LongOpenHashSet();
         edits.clear();
+        dirty = false;
         file = target;
         try {
-            if (Files.exists(file)) {
-                ByteBuffer b = ByteBuffer.wrap(Files.readAllBytes(file)).order(ByteOrder.LITTLE_ENDIAN);
+            // Worlds from before the rename keep their edits (the old file is read once, then saved under the new name).
+            Path read = Files.exists(file) ? file : file.resolveSibling("passthrough_edits_" + dim + ".bin");
+            if (Files.exists(read)) {
+                dirty = !read.equals(file);
+                ByteBuffer b = ByteBuffer.wrap(Files.readAllBytes(read)).order(ByteOrder.LITTLE_ENDIAN);
                 while (b.remaining() >= 8) edits.add(b.getLong());
             }
         } catch (IOException e) {
-            System.err.println("[PassThrough Realism] couldn't read " + file + ": " + e);
+            System.err.println("[Realism Renderer] couldn't read " + file + ": " + e);
         }
         edits.addAll(early);
-        dirty = !early.isEmpty();
+        dirty |= !early.isEmpty();
     }
 
     public void record(long pos) {
@@ -63,7 +67,7 @@ public final class EditLog {
             Files.write(file, b.array());
             dirty = false;
         } catch (IOException e) {
-            System.err.println("[PassThrough Realism] couldn't save " + file + ": " + e);
+            System.err.println("[Realism Renderer] couldn't save " + file + ": " + e);
         }
     }
 
