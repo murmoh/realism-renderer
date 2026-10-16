@@ -617,6 +617,12 @@ public sealed class App
             Console.WriteLine(_entityDrawer.Realistic ? "Realistic animals" : "Minecraft animals");
             return;
         }
+        if (key == Key.F8 && _bridge != null)
+        {
+            _bridge.ToggleMinecraftWindow();
+            Console.WriteLine("Toggled the Minecraft window (hidden while this renderer runs, or shown)");
+            return;
+        }
         if (key == Key.F6 && _bridge != null)
         {
             _follow = !_follow;
@@ -643,7 +649,7 @@ public sealed class App
 
     void OnKeyUp(IKeyboard kb, Key key, int scancode)
     {
-        if (LiveControl && key is not (Key.F2 or Key.F6 or Key.F7)) _bridge!.SendInputEvent(0, (int)key, scancode, 0, Modifiers(kb));
+        if (LiveControl && key is not (Key.F2 or Key.F6 or Key.F7 or Key.F8)) _bridge!.SendInputEvent(0, (int)key, scancode, 0, Modifiers(kb));
     }
 
     void OnKeyChar(IKeyboard kb, char c)

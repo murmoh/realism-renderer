@@ -17,6 +17,9 @@ public final class RealismConfig {
     /** Break one log of a natural tree and the whole tree comes down (see TreeFeller). */
     public boolean treeFelling = true;
 
+    /** Hide Minecraft's own window while the renderer is running (it reappears when the renderer closes). */
+    public boolean hideMinecraftWindow = false;
+
     public static RealismConfig get() {
         if (instance == null) instance = load();
         return instance;

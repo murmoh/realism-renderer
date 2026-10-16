@@ -29,6 +29,14 @@ public final class RealismConfigScreen extends Screen {
                 config.treeFelling = on;
                 config.save();
             }));
+        addDrawableChild(CyclingButtonWidget.onOffBuilder(config.hideMinecraftWindow)
+            .tooltip(on -> Tooltip.of(Text.literal(on
+                ? "While the Realism Renderer app is running, this window is hidden: you play in the renderer. It comes back when the renderer closes. (F8 in the renderer also toggles it.)"
+                : "This window stays visible next to the renderer (for example to record both side by side).")))
+            .build(x, height / 4 + 48, 200, 20, Text.literal("Hide Minecraft window"), (button, on) -> {
+                config.hideMinecraftWindow = on;
+                config.save();
+            }));
         addDrawableChild(ButtonWidget.builder(ScreenTexts.DONE, button -> close())
             .dimensions(x, height / 4 + 120, 200, 20).build());
     }

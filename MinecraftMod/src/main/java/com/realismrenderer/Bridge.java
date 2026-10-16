@@ -170,6 +170,7 @@ public final class Bridge {
         LONG.setRelease(buf, OFF_WRITER_HEARTBEAT, now);
         if (mc.world == null) buf.putInt(OFF_IN_WORLD, 0);
         editLog.ensure(mc); // digs and placements are kept whether or not the renderer is connected
+        updateWindowVisibility(mc);
 
         boolean alive = now - (long) LONG.getAcquire(buf, OFF_READER_HEARTBEAT) < 3000;
         updateStepHeight(mc, alive);
@@ -504,6 +505,7 @@ public final class Bridge {
     static final long ENT_BASE = GUI_BASE + 2 * GUI_SLOT;
     static final long FILE_SIZE = ENT_BASE + 2 * ENT_SLOT;
     static final int OFF_ENT_FRAME = 320, OFF_ENT_SLOT = 328, OFF_TARGET = 336; // target: has, x, y, z, side, break stage
+    static final int OFF_HIDE_TOGGLE = 368; // int, renderer -> mod: bumped to show/hide Minecraft's window (F8)
     static final int OFF_GUI_STRAIGHT = 364; // 1: the UI frame is straight alpha over Minecraft's world (playing in its window)
     static final int OFF_FOV = 360; // vertical field of view in degrees, as Minecraft draws the world this frame
 
@@ -535,6 +537,43 @@ public final class Bridge {
             requestedW = w;
             requestedH = h;
             org.lwjgl.glfw.GLFW.glfwSetWindowSize(mc.getWindow().getHandle(), w, h);
+        }
+    }
+
+    private boolean windowHiddenByUs;
+    private int lastHideToggle = Integer.MIN_VALUE;
+
+    /**
+     * Minecraft's own window, while the renderer runs: hidden if the setting says so (F8 in the renderer toggles it),
+     * shown again as soon as the renderer closes. Minimizing it hides it instead: a minimized window stops drawing
+     * the hand, HUD and menus the renderer shows (a hidden one keeps drawing at full speed).
+     */
+    private void updateWindowVisibility(MinecraftClient mc) {
+        if (System.getProperty("ptr.test") != null) return; // the test client's window is always hidden
+        long win = mc.getWindow().getHandle();
+        boolean alive = readerAlive();
+        var config = RealismConfig.get();
+        int toggle = buf.getInt(OFF_HIDE_TOGGLE);
+        if (lastHideToggle == Integer.MIN_VALUE || !alive) lastHideToggle = toggle;
+        if (toggle != lastHideToggle) {
+            lastHideToggle = toggle;
+            config.hideMinecraftWindow = !config.hideMinecraftWindow;
+            config.save();
+        }
+        if (alive && org.lwjgl.glfw.GLFW.glfwGetWindowAttrib(win, org.lwjgl.glfw.GLFW.GLFW_ICONIFIED) == org.lwjgl.glfw.GLFW.GLFW_TRUE) {
+            org.lwjgl.glfw.GLFW.glfwRestoreWindow(win);
+            if (!config.hideMinecraftWindow) {
+                config.hideMinecraftWindow = true;
+                config.save();
+            }
+        }
+        boolean hide = alive && config.hideMinecraftWindow;
+        if (hide && !windowHiddenByUs) {
+            org.lwjgl.glfw.GLFW.glfwHideWindow(win);
+            windowHiddenByUs = true;
+        } else if (!hide && windowHiddenByUs) {
+            org.lwjgl.glfw.GLFW.glfwShowWindow(win);
+            windowHiddenByUs = false;
         }
     }
 
