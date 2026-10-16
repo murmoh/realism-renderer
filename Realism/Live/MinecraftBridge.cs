@@ -62,6 +62,7 @@ public static class BridgeProtocol
     public const long EntSlot = 4L << 20, EntBase = GuiBase + 2 * GuiSlot, FileSize = EntBase + 2 * EntSlot;
     public const int OffEntFrame = 320, OffEntSlot = 328, OffTarget = 336, MsgModel = 5, MsgTexture = 6, MsgEdits = 7,
         MsgBlockModel = 8, MsgAtlas = 9;
+    public const int OffBrightness = 372, OffNightVision = 376; // floats: 1 + Brightness setting (0 = not sent), night vision 0..1
     public const int OffHideToggle = 368; // int, renderer -> mod: bumped to show/hide Minecraft's window
     public const int OffGuiStraight = 364; // int: 1 = the UI frame is straight alpha over Minecraft's own world (playing in its window)
     public const int OffFov = 360; // float: Minecraft's vertical field of view this frame, degrees (0: older mod)
@@ -272,6 +273,14 @@ public sealed unsafe class MinecraftBridge : IDisposable
     /// <summary>The newest captured UI frame: RGBA (premultiplied, bottom row first), or false if none.</summary>
     /// <summary>True when the last UI frame holds Minecraft's world too, with alpha marking the UI (straight alpha): you
     /// are playing in Minecraft's own window and the renderer follows. Otherwise it is the UI alone, premultiplied.</summary>
+    /// <summary>Minecraft's Brightness setting (0 Moody .. 0.5 default .. 1 Bright) and Night Vision strength (0..1).</summary>
+    public (float brightness, float nightVision) ReadBrightness()
+    {
+        float b = Volatile.Read(ref *(float*)(_p + BridgeProtocol.OffBrightness));
+        float nv = Volatile.Read(ref *(float*)(_p + BridgeProtocol.OffNightVision));
+        return (b >= 1 && b <= 2 ? b - 1 : 0.5f, Math.Clamp(nv, 0, 1));
+    }
+
     /// <summary>Asks the mod to show or hide Minecraft's own window (it remembers the choice).</summary>
     public void ToggleMinecraftWindow() => Interlocked.Increment(ref *(int*)(_p + BridgeProtocol.OffHideToggle));
 

@@ -206,6 +206,7 @@ public static class PostShaders
         uniform float uBloomStrength;
         uniform float uVolumetricStrength;
         uniform float uNight;
+        uniform float uBrightness; // Minecraft's Brightness slider: -0.5 Moody .. 0 default .. +0.5 Bright (and night vision)
         out vec4 FragColor;
         void main() {
             vec3 c = texture(uScene, vUv).rgb;
@@ -220,6 +221,11 @@ public static class PostShaders
             c = (c * (2.51 * c + 0.03)) / (c * (2.43 * c + 0.59) + 0.14); // ACES fit
             vec2 q = vUv - 0.5;
             c *= 1.0 - 0.22 * pow(dot(q, q) * 2.2, 1.3);                   // lens vignette
+            // Brightness, like Minecraft's slider: it lifts the dark parts (caves, shadows, night) and barely touches
+            // daylight. Brighter uses Minecraft's own curve 1 - (1 - x)^4; Moody deepens the shadows a little.
+            c = clamp(c, 0.0, 1.0);
+            if (uBrightness > 0.0) c = mix(c, 1.0 - pow(1.0 - c, vec3(4.0)), min(uBrightness, 1.0) * 0.55);
+            else c = mix(c, pow(c, vec3(1.35)), -uBrightness * 1.2);
             FragColor = vec4(pow(clamp(c, 0.0, 1.0), vec3(1.0 / 2.2)), 1.0);
         }
         """;

@@ -1287,11 +1287,16 @@ public sealed class App
         // Exposure: tuned per situation (night, underground), then eye adaptation pulls it down whenever the view is
         // much brighter than that suits - looking out of a cave into daylight - instead of blowing out to white.
         float baseExposure = 0.85f * (1 + 3.0f * _night * (1 - _underground)) * (1 + 2.5f * _underground);
+        // Minecraft's Brightness slider and Night Vision: in the dark (caves, night) the eyes open up further.
+        var (mcBrightness, nightVision) = _bridge != null && _liveInWorld ? _bridge.ReadBrightness() : (0.5f, 0f);
+        float darkness = MathF.Max(_underground, _night);
+        baseExposure *= (1 + 0.8f * (mcBrightness - 0.5f) * darkness) * (1 + 3f * nightVision * darkness);
         float wanted = Math.Clamp(0.3f / MathF.Max(_post.AverageLuminance * baseExposure, 1e-4f), 0.12f, 1f);
         float rate = wanted < _adapt ? 3f : 0.8f; // eyes stop down for brightness fast, open up for darkness slowly
         _adapt += (wanted - _adapt) * (1 - MathF.Exp(-(float)dt * rate));
         _post.Finish(proj, baseExposure * _adapt, new FrameLight(_farShadow.tex, _nearShadow.tex, _lightViewProj, _lightViewProjNear,
-            invViewProj, _camPos, sun, sunColor * (1 - 0.85f * _night), _night, 1 - 0.6f * _underground)); // moonlit air barely glows
+            invViewProj, _camPos, sun, sunColor * (1 - 0.85f * _night), _night, 1 - 0.6f * _underground, // moonlit air barely glows
+            mcBrightness - 0.5f + 0.5f * nightVision));
         DrawGui();
         if (_opt.Play != null) GameplayCapture();
         if (_pendingScreenshot != null)

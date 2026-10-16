@@ -171,6 +171,10 @@ public final class Bridge {
         if (mc.world == null) buf.putInt(OFF_IN_WORLD, 0);
         editLog.ensure(mc); // digs and placements are kept whether or not the renderer is connected
         updateWindowVisibility(mc);
+        // Minecraft's Brightness setting (Moody 0 .. Bright 1) and the Night Vision effect, for the renderer's exposure.
+        buf.putFloat(OFF_BRIGHTNESS, 1f + mc.options.getGamma().getValue().floatValue());
+        buf.putFloat(OFF_NIGHT_VISION, mc.player != null && mc.player.hasStatusEffect(net.minecraft.entity.effect.StatusEffects.NIGHT_VISION)
+            ? net.minecraft.client.render.GameRenderer.getNightVisionStrength(mc.player, 1f) : 0f);
 
         boolean alive = now - (long) LONG.getAcquire(buf, OFF_READER_HEARTBEAT) < 3000;
         updateStepHeight(mc, alive);
@@ -505,6 +509,7 @@ public final class Bridge {
     static final long ENT_BASE = GUI_BASE + 2 * GUI_SLOT;
     static final long FILE_SIZE = ENT_BASE + 2 * ENT_SLOT;
     static final int OFF_ENT_FRAME = 320, OFF_ENT_SLOT = 328, OFF_TARGET = 336; // target: has, x, y, z, side, break stage
+    static final int OFF_BRIGHTNESS = 372, OFF_NIGHT_VISION = 376; // floats: 1 + Brightness setting (0 = not sent), night vision 0..1
     static final int OFF_HIDE_TOGGLE = 368; // int, renderer -> mod: bumped to show/hide Minecraft's window (F8)
     static final int OFF_GUI_STRAIGHT = 364; // 1: the UI frame is straight alpha over Minecraft's world (playing in its window)
     static final int OFF_FOV = 360; // vertical field of view in degrees, as Minecraft draws the world this frame

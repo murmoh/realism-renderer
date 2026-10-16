@@ -229,6 +229,7 @@ public sealed class PostProcess : IDisposable
         _composite.Set("uSunColor", light.SunColor);
         _composite.Set("uVolumetricStrength", 0.4f * light.VolumetricScale);
         _composite.Set("uNight", light.Night);
+        _composite.Set("uBrightness", light.Brightness);
         _composite.Set("uScene", 0);
         _composite.Set("uAo", 1);
         _composite.Set("uBloom", 2);
@@ -350,4 +351,5 @@ public sealed class PostProcess : IDisposable
 /// <summary>What the volumetric pass needs from the frame: shadow cascades, sun and camera.</summary>
 public readonly record struct FrameLight(
     uint FarShadow, uint NearShadow, Matrix4x4 LightViewProj, Matrix4x4 LightViewProjNear,
-    Matrix4x4 InvViewProj, Vector3 CamPos, Vector3 SunDir, Vector3 SunColor, float Night = 0, float VolumetricScale = 1);
+    Matrix4x4 InvViewProj, Vector3 CamPos, Vector3 SunDir, Vector3 SunColor, float Night = 0, float VolumetricScale = 1,
+    float Brightness = 0); // Minecraft's Brightness slider, -0.5 (Moody) .. 0 (default) .. +0.5 (Bright), plus night vision
