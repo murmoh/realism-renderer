@@ -1,0 +1,61 @@
+# PassThrough Realism - 30 second gameplay film (format: see Rendering/Gameplay.cs).
+# Record (test client running on a copy of the world, see README):
+#   dotnet run --project Realism -c Release -- --live --no-launch --gameplay Realism/gameplay.txt --out gameplay.mp4
+# Look angles are Minecraft's: yaw 0 = south, 90 = west, 180 = north, -90 = east; pitch positive = down.
+
+# 1. A sunny walk along the open strip of meadow, between the grazing animals.
+seg 8 view=third
+cmd difficulty peaceful
+cmd gamemode survival
+cmd gamerule doDaylightCycle false
+cmd time set 4500
+cmd weather clear
+cmd effect give @s fire_resistance infinite 0 true
+cmd effect give @s resistance infinite 4 true
+cmd tp @s 418.5 92 -76.5 -90 4
+cmd summon cow 426.5 75 -74.5 {NoAI:1b,Rotation:[60f,0f]}
+cmd summon sheep 428.5 77 -78.5 {NoAI:1b,Rotation:[100f,0f]}
+cmd summon pig 425.5 77 -79.5 {NoAI:1b,Rotation:[150f,0f]}
+cmd summon chicken 422.5 75 -74.6 {NoAI:1b,Rotation:[20f,0f]}
+cmd summon chicken 420.6 75 -74.4 {NoAI:1b,Rotation:[-40f,0f]}
+cmd summon wolf 427.5 77 -80.2 {NoAI:1b,Rotation:[160f,0f]}
+at 0 look -90 4
+at 0 cam 0 4.4 0.55
+at 0.6 keys forward
+at 2.1 keys none
+at 3 look -90 6
+at 8 look -105 8
+at 2.5 cam 0 4.4 0.55
+at 8 cam -50 4.2 0.6
+
+# 2. First person: one swing at the bottom log - the whole tree comes down - and the logs are collected.
+seg 6 view=first
+cmd tp @s 427.5 74 -66.5 180 29
+cmd item replace entity @s hotbar.0 with iron_axe
+at 0 slot 0
+at 0 look 180 29
+at 0.5 keys attack
+at 2.0 keys none
+at 2.2 look 180 36
+at 2.8 keys forward
+at 4.0 keys none
+at 4.4 look 180 20
+at 6 look 165 4
+
+# 3. Deep below: by the lava river, the falls glowing at its far end.
+seg 7 view=first
+cmd tp @s 430.7 -53.8 -67.4 18 14
+at 0 look 18 14
+at 7 look 34 10
+
+# 4. Night in the meadow: fireflies, the moon and the stars.
+seg 9 view=third
+cmd time set 18000
+cmd tp @s 416.5 92 -76.5 -90 -5
+at 0 look -90 -5
+at 0 cam 0 4.6 0.6 2
+at 1.0 keys forward
+at 2.6 keys none
+at 4 look -90 -10
+at 4 cam 0 4.6 0.6 4
+at 9 cam -40 5.0 0.5 30

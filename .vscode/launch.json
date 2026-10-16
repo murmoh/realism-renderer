@@ -1,0 +1,35 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run Realism (LIVE - sync with Minecraft)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build Realism",
+            "program": "${workspaceFolder}/Realism/bin/Release/net10.0/Realism.dll",
+            "args": ["--live"],
+            "cwd": "${workspaceFolder}/Realism",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Run Realism (newest world)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build Realism",
+            "program": "${workspaceFolder}/Realism/bin/Release/net10.0/Realism.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/Realism",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Run Realism (ahmeds world)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build Realism",
+            "program": "${workspaceFolder}/Realism/bin/Release/net10.0/Realism.dll",
+            "args": ["ahmeds world"],
+            "cwd": "${workspaceFolder}/Realism",
+            "console": "integratedTerminal"
+        }
+    ]
+}

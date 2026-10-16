@@ -1,0 +1,39 @@
+# PassThrough Realism - 30 second cinematic of "New World (4)".
+# Render: dotnet run --project Realism -c Release -- "New World (4)" --cinematic Realism/cinematic.txt --out film.mp4
+# (needs ffmpeg on PATH or REALISM_FFMPEG). Format: see Rendering/Cinematic.cs. Yaw 0 = +X (east), 90 = +Z (south).
+
+# 1. Dawn: rising over the forest toward the mountain.
+shot 6 time=0.08
+430 92 -72 -90 -3 0.07
+430 102 -92 -90 -4
+431 114 -106 -88 -8
+432 126 -118 -86 -12 0.12
+
+# 2. Morning: gliding low over the river.
+shot 5 time=0.3
+534 69 -76 90 -18
+534 70.5 -72 90 -17
+534 72 -68 90 -16
+
+# 3. Golden hour: circling the peak.
+shot 6 time=0.95
+430 124 -100 -90 -16
+463 124 -114 -134 -16
+477 124 -147 -180 -16
+463 124 -180 -225 -16
+
+# 4. Deep below: a lava river running to the lava falls.
+shot 5 time=0.4
+431 -52.5 -67.4 112 -12
+430.7 -52.4 -66.8 125 -10
+430.4 -52.3 -66.2 140 -8
+
+# 5. The amethyst geode.
+shot 3 time=0.4
+485.5 -27.3 -20.5 -90 -8
+485.5 -27.3 -21.5 -60 -6
+
+# 6. Night: fireflies and stars over the meadow.
+shot 5 time=1.5
+427 80 -76 -90 6
+427 80 -84 -90 10

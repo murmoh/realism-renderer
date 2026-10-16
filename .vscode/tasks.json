@@ -1,0 +1,13 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build Realism",
+            "type": "process",
+            "command": "dotnet",
+            "args": ["build", "${workspaceFolder}/Realism/Realism.csproj", "-c", "Release"],
+            "problemMatcher": "$msCompile",
+            "group": { "kind": "build", "isDefault": true }
+        }
+    ]
+}

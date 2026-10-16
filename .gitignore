@@ -1,0 +1,23 @@
+# Build output
+bin/
+obj/
+build/
+.gradle/
+out/
+.vs/
+*.user
+
+# Minecraft and renderer test runs (world copies, logs, bridge files)
+MinecraftMod/run/
+MinecraftMod/run-test/
+Realism/run-test/
+
+# Large local files: ffmpeg copy (download separately), videos, screenshots, CurseForge page assets
+Realism/tools/
+*.mp4
+screenshot_*.png
+CurseForge/
+
+# Unrelated template project
+ConsoleApp1/
+ConsoleApp1.sln

@@ -1,0 +1,63 @@
+plugins {
+    id 'fabric-loom' version '1.11.8'
+}
+
+version = project.mod_version
+group = 'com.passthrough.realism'
+base { archivesName = 'passthrough-realism-bridge' }
+
+repositories {
+    maven { url 'https://maven.terraformersmc.com/releases/' } // Mod Menu (optional settings button)
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    modCompileOnly "com.terraformersmc:modmenu:14.0.0"
+    modLocalRuntime "com.terraformersmc:modmenu:14.0.0" // dev and test runs only, never a dependency of the release
+}
+
+processResources {
+    inputs.property 'version', project.version
+    filesMatching('fabric.mod.json') { expand 'version': project.version }
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+tasks.withType(JavaCompile).configureEach { it.options.release = 21 }
+
+loom {
+    runs {
+        // Isolated test client: own folder (run-test, with its own world copy) and its own bridge file,
+        // so automated tests never touch a game someone is playing. ./gradlew runTestClient
+        testClient {
+            client()
+            runDir "run-test"
+            programArgs "--quickPlaySingleplayer", "Test World"
+            vmArg "-Dptr.bridge.dir=" + file("run-test/bridge").absolutePath
+            vmArg "-Dptr.test=true"
+            if (project.hasProperty("cave")) vmArg "-Dptr.cave=true" // TestHooks: torches and lava around the player
+            if (project.hasProperty("blocks")) vmArg "-Dptr.blocks=true" // TestHooks: a small build to look at
+            if (project.hasProperty("mobs")) vmArg "-Dptr.mobs=true" // TestHooks: mobs with layers (wool, saddle, armour)
+            if (project.hasProperty("time")) vmArg "-Dptr.time=" + project.property("time") // TestHooks: time of day (ticks)
+            if (project.hasProperty("surface")) vmArg "-Dptr.surface=true" // TestHooks: start on the ground surface
+            if (project.hasProperty("shaft")) vmArg "-Dptr.shaft=true" // TestHooks: dig a shaft from the cave to daylight
+            if (project.hasProperty("water")) vmArg "-Dptr.water=true" // TestHooks: a platform with flowing water and falls
+            if (project.hasProperty("cavefloor")) vmArg "-Dptr.cavefloor=true" // TestHooks: stand on the cave floor below
+            if (project.hasProperty("mcshot")) vmArg "-Dptr.mcshot=" + project.property("mcshot") // TestHooks: screenshot of Minecraft's own view after N ticks
+            if (project.hasProperty("nohud")) vmArg "-Dptr.nohud=true" // TestHooks: HUD and hand hidden (F1), for clean screenshots
+            if (project.hasProperty("settings")) vmArg "-Dptr.settings=true" // TestHooks: open the settings screen and screenshot it
+            if (project.hasProperty("stream")) vmArg "-Dptr.stream=true" // TestHooks: water and lava sources on nearby hilltops
+        }
+        client {
+            // Dev/test launch straight into a world: ./gradlew runClient
+            // ./gradlew runClient -Pworld="New World (4)" opens that world directly; without it, the title screen.
+            if (project.hasProperty('world')) programArgs '--quickPlaySingleplayer', project.property('world')
+        }
+    }
+}
