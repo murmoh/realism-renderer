@@ -534,6 +534,13 @@ public static class Mesher
         {
             byte m = mat[Idx(i, j, k)];
             var basePos = new Vector3(bx + i, y0 + j, bz + k);
+            if (m is Mat.Fire or Mat.SoulFire)
+            {
+                AddFlames(result.BlocksTranslucent, basePos, m == Mat.SoulFire, ToByte(field.Sky(new Vector3(i, j, k))));
+                if (result.Lights.Count < 96) result.Lights.Add(new Vector4(basePos + new Vector3(0.5f, 0.6f, 0.5f), m == Mat.SoulFire ? 2.5f : 5f));
+                result.Emitters.Add(new Vector4(basePos.X + 0.5f, basePos.Y + 0.5f, basePos.Z + 0.5f, -1)); // sparks
+                continue;
+            }
             if (modelAt?[Idx(i, j, k)] is { } model)
             {
                 AddModel(model, basePos, i, j, k);
@@ -1530,6 +1537,31 @@ public static class Mesher
     }
 
     static readonly (int dx, int dz)[] Dirs4 = [(1, 0), (-1, 0), (0, 1), (0, -1)];
+    /// <summary>
+    /// A fire block: three vertical sheets crossing at the block's middle (60 degrees apart), a little taller than the
+    /// block and sunk slightly into the ground, which the block shader fills with rising, flickering flames. Data0: the
+    /// position on the sheet (u across, v up); Data1: flags (fire, soul fire) and sky light.
+    /// </summary>
+    static void AddFlames(MeshData m, Vector3 basePos, bool soul, byte sky)
+    {
+        var centre = basePos + new Vector3(0.5f, -0.12f, 0.5f);
+        uint flags = (uint)((15 << 1) | (1 << 6) | (soul ? 1 << 7 : 0));
+        uint data1 = 0xFFFFu | (flags << 16) | ((uint)sky << 24);
+        for (int s = 0; s < 3; s++)
+        {
+            float a = s * MathF.PI / 3 + 0.3f;
+            var along = new Vector3(MathF.Cos(a), 0, MathF.Sin(a)) * 0.55f;
+            var normal = new Vector3(-MathF.Sin(a), 0, MathF.Cos(a));
+            var up = new Vector3(0, 1.35f, 0);
+            uint b = (uint)m.Vertices.Count;
+            m.Vertices.Add(new Vertex { Pos = centre - along, Normal = normal, Data0 = PackUv(new Vector2(0, 0)), Data1 = data1 });
+            m.Vertices.Add(new Vertex { Pos = centre + along, Normal = normal, Data0 = PackUv(new Vector2(1, 0)), Data1 = data1 });
+            m.Vertices.Add(new Vertex { Pos = centre + along + up, Normal = normal, Data0 = PackUv(new Vector2(1, 1)), Data1 = data1 });
+            m.Vertices.Add(new Vertex { Pos = centre - along + up, Normal = normal, Data0 = PackUv(new Vector2(0, 1)), Data1 = data1 });
+            m.Indices.AddRange([b, b + 1, b + 2, b, b + 2, b + 3]);
+        }
+    }
+
     /// <summary>A light's w at or above this is a nether portal's violet glow (strength = w - PortalLight).</summary>
     public const float PortalLight = 1000;
     static readonly int[] Axes = [0, 2, 1, 0, 2, 1, 0, 2, 0, 2]; // fluid blur passes: across x/z five times, y twice

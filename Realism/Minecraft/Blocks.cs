@@ -42,6 +42,9 @@ public static class Mat
     /// <summary>Nether portal: Minecraft's block model, drawn as a swirling, glowing surface (frame kept crisp).</summary>
     public const byte Portal = 147;
 
+    /// <summary>Fire and soul fire: drawn as animated flames (Minecraft's fire texture is animated; we only get a still).</summary>
+    public const byte Fire = 148, SoulFire = 149;
+
     // Amethyst buds and clusters (170 + growth stage 0 small .. 3 full cluster): drawn as crystal prisms.
     public const byte Crystal = 170;
     public static bool IsCrystal(byte m) => m is >= Crystal and <= Crystal + 3;
@@ -202,6 +205,8 @@ public static class Blocks
             case "lava": return Mat.Lava;
             case "ancient_debris": return Mat.NetherOre;
             case "nether_portal": return Mat.Portal;
+            case "fire": return Mat.Fire;
+            case "soul_fire": return Mat.SoulFire;
             case "short_grass" or "tall_grass" or "grass" or "fern" or "large_fern" or "short_dry_grass" or "tall_dry_grass":
                 return Mat.TallGrass;
         }

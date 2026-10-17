@@ -1562,6 +1562,7 @@ public static class Shaders
         flat out float vShade;
         flat out float vLum;
         flat out float vPortal;
+        flat out float vFire;
         void main() {
             vPos = aPos;
             vNormal = aNormal;
@@ -1572,7 +1573,8 @@ public static class Shaders
             vTint = vec3(floor(t / 2048.0) / 31.0, mod(floor(t / 32.0), 64.0) / 63.0, mod(t, 32.0) / 31.0);
             vShade = mod(d.z, 2.0);
             vLum = mod(floor(d.z / 2.0), 16.0);
-            vPortal = floor(d.z / 32.0);
+            vPortal = mod(floor(d.z / 32.0), 2.0);
+            vFire = floor(d.z / 64.0); // 1 fire, 3 soul fire
             vSky = d.w / 255.0;
             gl_Position = uViewProj * vec4(aPos, 1.0);
         }
@@ -1587,6 +1589,7 @@ public static class Shaders
         flat in float vShade;
         flat in float vLum;
         flat in float vPortal;
+        flat in float vFire;
         uniform sampler2D uAtlas;
         uniform int uTranslucent;
         out vec4 FragColor;
@@ -1618,7 +1621,38 @@ public static class Shaders
             return vec4(col * (1.6 - 0.6 * uNight), mix(0.82, 0.96, edgeOn));
         }
 
+        // Fire: flames rising and flickering on crossed sheets (vUv: u across the sheet, v up). Turbulent noise
+        // scrolls upward; the flame narrows and breaks into tongues toward the top; white-yellow core, orange body,
+        // red tips (soul fire: cyan to deep blue). Each sheet has its own seed so the crossing sheets differ.
+        vec4 fireColor(bool soul) {
+            vec2 uv = vUv;
+            float h = uv.y, t = uTime;
+            float seed = hash13(floor(vPos + 0.5) + vNormal * 3.1);
+            float x = (uv.x - 0.5) * 2.0;
+            float rise = h * 2.2 - t * 1.9;
+            float turb = fbm(vec3(uv.x * 3.2 + seed * 7.0, rise, seed * 13.0 + t * 0.35), 4);
+            float lick = vnoise(vec3(uv.x * 7.5 + seed * 3.0, h * 5.5 - t * 4.2, seed * 5.0));
+            float sway = (vnoise(vec3(h * 1.5, t * 0.9, seed * 9.0)) - 0.5) * 0.5 * h;
+            float width = mix(0.95, 0.15, h);                    // wide at the base, narrowing upward
+            float body = width - abs(x + sway) * (0.85 + 0.5 * lick);
+            float flame = body + (turb - 0.5) * 0.9 - h * 0.45;
+            float a = smoothstep(0.0, 0.22, flame) * smoothstep(0.0, 0.08, h); // soft edges, faded into the ground
+            if (a < 0.01) discard;
+            float heat = clamp(flame * 1.7 + (1.0 - h) * 0.35, 0.0, 1.0);
+            vec3 col;
+            if (soul) col = mix(mix(vec3(0.0, 0.12, 0.45), vec3(0.1, 0.65, 1.0), smoothstep(0.1, 0.5, heat)), vec3(0.75, 1.0, 1.0), smoothstep(0.55, 0.95, heat));
+            else col = mix(mix(vec3(0.75, 0.08, 0.01), vec3(1.0, 0.45, 0.05), smoothstep(0.1, 0.5, heat)), vec3(1.0, 0.9, 0.55), smoothstep(0.55, 0.95, heat));
+            // Flicker of the whole fire.
+            float flicker = 0.85 + 0.15 * vnoise(vec3(t * 6.0, seed * 17.0, 0.0));
+            return vec4(col * (2.2 + 2.8 * heat) * flicker, a * mix(0.75, 1.0, heat));
+        }
+
         void main() {
+            if (vFire > 0.5) {
+                vec4 fc = fireColor(vFire > 2.5);
+                FragColor = vec4(outputColor(applyFog(fc.rgb, vPos)), fc.a);
+                return;
+            }
             if (vPortal > 0.5) {
                 vec4 pc = portalColor();
                 FragColor = vec4(outputColor(applyFog(pc.rgb, vPos)), pc.a);
