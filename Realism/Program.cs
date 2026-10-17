@@ -6,6 +6,13 @@ using Realism.Rendering;
 
 if (args.Contains("--compare")) return Comparison.Run(args); // comparison video from recordings (see Rendering/Comparison.cs)
 
+// No arguments (RealismRenderer.exe double-clicked): follow the Minecraft the player starts from their own launcher.
+if (args.Length == 0)
+{
+    Realism.Live.ModInstaller.Run(); // player builds: put the bundled mod into the launcher's Fabric profiles
+    args = ["--live", "--no-launch"];
+}
+
 // Usage: dotnet run -- [world name or path | --live] [--radius N] [--time 0..1] [--cam x,y,z,yaw,pitch] [--screenshot file.png]
 string? worldArg = null, screenshot = null, camArg = null, filmScript = null, filmOut = null, filmPreview = null;
 int radius = 12, weather = 0;
@@ -53,7 +60,8 @@ if (args.Contains("--live"))
     bool alreadyRunning = bridge.MinecraftRunning && string.IsNullOrEmpty(Environment.GetEnvironmentVariable("PTR_BRIDGE_DIR"));
     if (alreadyRunning) Console.WriteLine("Minecraft is already running.");
     else if (!args.Contains("--no-launch")) LaunchMinecraft(worldArg);
-    else Console.WriteLine("Waiting for Minecraft (start it with the Realism Renderer mod)...");
+    else Console.WriteLine("Waiting for Minecraft: start it from your launcher with the Fabric 1.21.5 profile " +
+                           "(Realism Renderer mod and Fabric API in its mods folder), then open a world.");
     using var liveStreamer = new ChunkStreamer(liveWorld, radius, liveCam);
     liveStreamer.Meshed = bridge.SendCollision;
     bridge.Start(liveStreamer);

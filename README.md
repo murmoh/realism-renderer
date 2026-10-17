@@ -47,6 +47,16 @@ It has two parts:
 - Optional: [ffmpeg](https://ffmpeg.org/download.html) (`ffmpeg.exe` in `Realism\tools\`) for recording videos and
   making comparison videos
 
+## Playing (no source code needed)
+
+`BuildRelease.bat` makes the download for players: `release\RealismRenderer-<version>.zip`, with
+`RealismRenderer.exe` (no .NET install needed), `glfw3.dll`, and `mods\` holding the bridge mod and Fabric API.
+Players install [Fabric Loader](https://fabricmc.net/use/installer/) for 1.21.5 once, unzip, and double-click
+`RealismRenderer.exe`. It offers to install the mod and Fabric API into every Fabric 1.21.5 profile in the Minecraft
+launcher (including profiles with their own mods folder, like the Iris installer's), then waits for the game. They
+start Minecraft from their own launcher, signed in to their own account, in either order. `HOW TO PLAY.txt` in the zip
+has the steps.
+
 ## Getting started
 
 ```

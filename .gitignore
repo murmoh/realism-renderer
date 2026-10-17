@@ -22,3 +22,6 @@ CurseForge/
 ConsoleApp1/
 ConsoleApp1.sln
 .vscode/settings.json
+
+# Player build (BuildRelease.bat)
+release/

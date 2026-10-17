@@ -24,10 +24,12 @@ public abstract class WorldRendererMixin {
                                        GameRenderer gameRenderer, Matrix4f positionMatrix, Matrix4f projectionMatrix, CallbackInfo ci) {
         var bridge = BridgeMod.bridge;
         if (bridge == null || !bridge.controlActive()) return;
-        bridge.applyLook(MinecraftClient.getInstance());
+        var mc = MinecraftClient.getInstance();
+        // "Loading terrain..." closes once the player's chunk is built for drawing, which only happens in here.
+        if (mc.currentScreen instanceof net.minecraft.client.gui.screen.DownloadingTerrainScreen) return;
+        bridge.applyLook(mc);
         bridge.writeCamera(camera);
         // Minecraft normally prepares entity renderers here; entity posing (EntitySync) needs it.
-        var mc = MinecraftClient.getInstance();
         mc.getEntityRenderDispatcher().configure(mc.world, camera, mc.targetedEntity);
         ci.cancel();
     }

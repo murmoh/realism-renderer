@@ -109,6 +109,9 @@ public sealed class App
             IsVisible = opt.ScreenshotPath == null && opt.Film == null && opt.Play == null, // recordings render hidden, never stealing focus
             VSync = opt.Film == null && opt.Play == null,
         };
+        // Explicit, because Silk.NET's platform discovery scans assembly files, which a single-file exe doesn't have.
+        Silk.NET.Windowing.Glfw.GlfwWindowing.RegisterPlatform();
+        Silk.NET.Input.Glfw.GlfwInput.RegisterPlatform();
         _window = Window.Create(options);
         _window.Load += OnLoad;
         _window.Update += OnUpdate;
@@ -251,6 +254,8 @@ public sealed class App
           R            weather: clear / overcast / rain
           F6           live: play / free camera
           F7           realistic / Minecraft-style animals
+          F8           live: hide / show Minecraft's window
+          F11          fullscreen / window (automatic when Minecraft was fullscreen)
           Live play    all Minecraft keys work as in Minecraft (E inventory, T chat, Esc menu, F5 view, ...);
                        WASD move, Space jump, Shift sneak, Ctrl sprint, mouse look,
                        left click mine/attack, right click place/use, middle pick, Q drop, 1-9 / wheel hotbar
@@ -424,6 +429,19 @@ public sealed class App
     /// <summary>Draws Minecraft's UI over the finished frame (it is premultiplied and stored bottom row first).</summary>
     void DrawGui()
     {
+        if (MenuMode)
+        {
+            // The whole window: Minecraft's menu, drawn opaque (its frame has no world under it to show through).
+            _gl.Disable(EnableCap.DepthTest);
+            _gl.Disable(EnableCap.Blend);
+            _guiProgram.Use();
+            _gl.ActiveTexture(TextureUnit.Texture0);
+            _gl.BindTexture(TextureTarget.Texture2D, _guiTex);
+            _guiProgram.Set("uGui", 0);
+            _gl.BindVertexArray(_skyVao);
+            _gl.DrawArrays(PrimitiveType.Triangles, 0, 3);
+            return;
+        }
         if (_bridge == null || !LiveControl || _guiAge > 0.5 || _guiW == 0) return;
         if (_opt.Play != null && _thirdPerson) return; // gameplay film: Minecraft's HUD (hand, crosshair) only in first person
         _gl.Disable(EnableCap.DepthTest);
@@ -564,7 +582,13 @@ public sealed class App
     }
 
     /// <summary>A Minecraft screen (inventory, chest, chat, pause menu, ...) is open: the mouse works it as a cursor.</summary>
-    bool ScreenMode => LiveControl && _bridge!.ScreenOpen;
+    bool ScreenMode => LiveControl && _bridge!.ScreenOpen || MenuMode;
+
+    /// <summary>
+    /// Minecraft is outside a world, on its title screen, world list, settings or a loading screen: this window shows
+    /// that screen in place of the landscape and works it like Minecraft's own window would.
+    /// </summary>
+    bool MenuMode => _bridge != null && !_liveInWorld && _bridge.MinecraftRunning && _bridge.ScreenOpen && _guiAge < 0.5 && _guiW > 0;
 
     void OnMouseDown(IMouse mouse, MouseButton button)
     {
@@ -584,7 +608,7 @@ public sealed class App
     void OnScroll(IMouse mouse, ScrollWheel w)
     {
         // Live: Minecraft handles the wheel itself (hotbar in game, scrolling lists in screens).
-        if (LiveControl) _bridge!.SendInputEvent(4, w.X, w.Y);
+        if (LiveControl || MenuMode) _bridge!.SendInputEvent(4, w.X, w.Y);
         else _speed = Math.Clamp(_speed * (w.Y > 0 ? 1.25f : 0.8f), 2f, 500f);
     }
 
@@ -623,6 +647,7 @@ public sealed class App
             Console.WriteLine("Toggled the Minecraft window (hidden while this renderer runs, or shown)");
             return;
         }
+        if (key == Key.F11) { ToggleFullscreen(); return; }
         if (key == Key.F6 && _bridge != null)
         {
             _follow = !_follow;
@@ -631,7 +656,7 @@ public sealed class App
             return;
         }
 
-        if (LiveControl)
+        if (LiveControl || MenuMode)
         {
             // Everything else goes to Minecraft's own keyboard handling: E inventory, T chat, Esc pause menu,
             // F5 perspective, 1-9 hotbar, Q drop, F3 debug, typing in screens, ...
@@ -649,12 +674,40 @@ public sealed class App
 
     void OnKeyUp(IKeyboard kb, Key key, int scancode)
     {
-        if (LiveControl && key is not (Key.F2 or Key.F6 or Key.F7 or Key.F8)) _bridge!.SendInputEvent(0, (int)key, scancode, 0, Modifiers(kb));
+        if ((LiveControl || MenuMode) && key is not (Key.F2 or Key.F6 or Key.F7 or Key.F8 or Key.F11)) _bridge!.SendInputEvent(0, (int)key, scancode, 0, Modifiers(kb));
+    }
+
+    bool _fullscreen, _mcWantedFullscreen;
+    Vector2D<int> _windowedPos, _windowedSize;
+
+    /// <summary>
+    /// F11: borderless fullscreen on the window's monitor (not exclusive fullscreen, which minimizes itself when you
+    /// click Minecraft's window or another app), or back to the window it was.
+    /// </summary>
+    void ToggleFullscreen()
+    {
+        _fullscreen = !_fullscreen;
+        if (_fullscreen)
+        {
+            _windowedPos = _window.Position;
+            _windowedSize = _window.Size;
+            var monitor = _window.Monitor ?? Silk.NET.Windowing.Monitor.GetMainMonitor(_window);
+            _window.WindowBorder = WindowBorder.Hidden;
+            _window.Position = monitor.Bounds.Origin;
+            _window.Size = monitor.VideoMode.Resolution ?? monitor.Bounds.Size; // Bounds leaves out the taskbar
+        }
+        else
+        {
+            _window.WindowBorder = WindowBorder.Resizable;
+            _window.Size = _windowedSize;
+            _window.Position = _windowedPos;
+        }
+        Console.WriteLine(_fullscreen ? $"Fullscreen {_window.Size.X}x{_window.Size.Y} (F11 for a window)" : "Windowed (F11 for fullscreen)");
     }
 
     void OnKeyChar(IKeyboard kb, char c)
     {
-        if (LiveControl) _bridge!.SendInputEvent(1, c, Modifiers(kb));
+        if (LiveControl || MenuMode) _bridge!.SendInputEvent(1, c, Modifiers(kb));
     }
 
     /// <summary>GLFW modifier bits: shift 1, control 2, alt 4.</summary>
@@ -677,6 +730,11 @@ public sealed class App
             var ps = _bridge.ReadPlayer();
             _liveInWorld = ps.InWorld;
             if (!ps.InWorld || !_follow) SendInput(false);
+            if (MenuMode && _opt.ScreenshotPath == null && _windowFocused)
+            {
+                if (_captured) SetCaptured(false); // a free cursor for the menu
+                _wasScreen = true;                 // captured again once the world has loaded (its screen closes)
+            }
             if (ps.InWorld)
             {
                 _overcast = Math.Max(ps.Rain, ps.Thunder);
@@ -994,7 +1052,13 @@ public sealed class App
         if (_bridge != null && _liveInWorld) _entityDrawer.Update(_bridge);
         if (_frame == 120 && _bridge != null && Environment.GetEnvironmentVariable("REALISM_TEST_KEYS") is { } tk)
             foreach (var k in tk.Split(",")) { _bridge.SendInputEvent(0, int.Parse(k), 0, 1, 0); _bridge.SendInputEvent(0, int.Parse(k), 0, 0, 0); }
-        if (_bridge != null) _bridge.WriteWindowSize(_window.FramebufferSize.X, _window.FramebufferSize.Y);
+        if (_bridge != null)
+        {
+            bool wants = _bridge.MinecraftWantsFullscreen;
+            if (wants && !_mcWantedFullscreen && !_fullscreen) ToggleFullscreen(); // the player plays fullscreen: here, then
+            _mcWantedFullscreen = wants;
+            _bridge.WriteWindowSize(_window.FramebufferSize.X, _window.FramebufferSize.Y);
+        }
 
         // The 32 nearest torches / glowing blocks light the scene this frame.
         _pointLights.Clear();

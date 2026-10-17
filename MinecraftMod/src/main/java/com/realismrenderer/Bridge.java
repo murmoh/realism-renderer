@@ -511,6 +511,7 @@ public final class Bridge {
     static final int OFF_ENT_FRAME = 320, OFF_ENT_SLOT = 328, OFF_TARGET = 336; // target: has, x, y, z, side, break stage
     static final int OFF_BRIGHTNESS = 372, OFF_NIGHT_VISION = 376; // floats: 1 + Brightness setting (0 = not sent), night vision 0..1
     static final int OFF_HIDE_TOGGLE = 368; // int, renderer -> mod: bumped to show/hide Minecraft's window (F8)
+    static final int OFF_FULLSCREEN = 380; // int: 1 = the player had Minecraft fullscreen; it is windowed while the renderer runs
     static final int OFF_GUI_STRAIGHT = 364; // 1: the UI frame is straight alpha over Minecraft's world (playing in its window)
     static final int OFF_FOV = 360; // vertical field of view in degrees, as Minecraft draws the world this frame
 
@@ -541,8 +542,40 @@ public final class Bridge {
         if (w > 0 && h > 0 && (w != requestedW || h != requestedH)) {
             requestedW = w;
             requestedH = h;
-            org.lwjgl.glfw.GLFW.glfwSetWindowSize(mc.getWindow().getHandle(), w, h);
+            long win = mc.getWindow().getHandle();
+            // Still fullscreen (leaving it, see updateFullscreen): resizing it would change the screen's resolution.
+            // Minecraft's own windowed size leaves fullscreen right away, at this size.
+            if (org.lwjgl.glfw.GLFW.glfwGetWindowMonitor(win) != 0) {
+                if (mc.getWindow().isFullscreen()) takeFullscreen(); // this frame came before the tick's check
+                mc.getWindow().setWindowedSize(w, h);
+            } else org.lwjgl.glfw.GLFW.glfwSetWindowSize(win, w, h);
         }
+    }
+
+    private boolean fullscreenTakenByUs, shownDespiteFullscreen;
+
+    /**
+     * A fullscreen Minecraft can't run beside the renderer: matching the renderer's size would change the screen's
+     * resolution, and a fullscreen window minimizes itself whenever the renderer has focus. So while the renderer runs
+     * Minecraft goes windowed and hidden (F8 shows it, for this session), and tells the renderer to go fullscreen
+     * instead (OFF_FULLSCREEN); once the renderer has been gone a few seconds, Minecraft goes back to fullscreen.
+     */
+    private void updateFullscreen(MinecraftClient mc, boolean alive) {
+        var window = mc.getWindow();
+        if (alive && window.isFullscreen()) {
+            window.toggleFullscreen(); // takes effect at the end of the frame, or in beforeFrame's resize
+            takeFullscreen();
+        } else if (fullscreenTakenByUs && System.currentTimeMillis() - (long) LONG.getAcquire(buf, OFF_READER_HEARTBEAT) > 3000) {
+            if (!window.isFullscreen()) window.toggleFullscreen();
+            fullscreenTakenByUs = false;
+        }
+        buf.putInt(OFF_FULLSCREEN, fullscreenTakenByUs ? 1 : 0);
+    }
+
+    private void takeFullscreen() {
+        fullscreenTakenByUs = true;
+        shownDespiteFullscreen = false;
+        requestedW = requestedH = 0;
     }
 
     private boolean windowHiddenByUs;
@@ -562,22 +595,30 @@ public final class Bridge {
         if (lastHideToggle == Integer.MIN_VALUE || !alive) lastHideToggle = toggle;
         if (toggle != lastHideToggle) {
             lastHideToggle = toggle;
-            config.hideMinecraftWindow = !config.hideMinecraftWindow;
-            config.save();
+            // Hidden only because it was fullscreen: F8 shows it for this session, leaving the setting alone.
+            if (fullscreenTakenByUs && !config.hideMinecraftWindow) shownDespiteFullscreen = !shownDespiteFullscreen;
+            else {
+                config.hideMinecraftWindow = !config.hideMinecraftWindow;
+                config.save();
+            }
         }
+        updateFullscreen(mc, alive);
         if (alive && org.lwjgl.glfw.GLFW.glfwGetWindowAttrib(win, org.lwjgl.glfw.GLFW.GLFW_ICONIFIED) == org.lwjgl.glfw.GLFW.GLFW_TRUE) {
             org.lwjgl.glfw.GLFW.glfwRestoreWindow(win);
-            if (!config.hideMinecraftWindow) {
+            // While fullscreen was taken it minimizes itself when the renderer takes focus: not the player's doing.
+            if (!config.hideMinecraftWindow && !fullscreenTakenByUs) {
                 config.hideMinecraftWindow = true;
                 config.save();
             }
         }
-        boolean hide = alive && config.hideMinecraftWindow;
-        if (hide && !windowHiddenByUs) {
-            org.lwjgl.glfw.GLFW.glfwHideWindow(win);
+        boolean hide = alive && (config.hideMinecraftWindow || fullscreenTakenByUs && !shownDespiteFullscreen);
+        // Checked every tick, not just remembered: leaving fullscreen shows the window again.
+        boolean visible = org.lwjgl.glfw.GLFW.glfwGetWindowAttrib(win, org.lwjgl.glfw.GLFW.GLFW_VISIBLE) == org.lwjgl.glfw.GLFW.GLFW_TRUE;
+        if (hide) {
+            if (visible) org.lwjgl.glfw.GLFW.glfwHideWindow(win);
             windowHiddenByUs = true;
-        } else if (!hide && windowHiddenByUs) {
-            org.lwjgl.glfw.GLFW.glfwShowWindow(win);
+        } else if (windowHiddenByUs) {
+            if (!visible) org.lwjgl.glfw.GLFW.glfwShowWindow(win);
             windowHiddenByUs = false;
         }
     }

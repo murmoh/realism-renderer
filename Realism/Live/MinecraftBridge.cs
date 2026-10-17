@@ -64,6 +64,7 @@ public static class BridgeProtocol
         MsgBlockModel = 8, MsgAtlas = 9;
     public const int OffBrightness = 372, OffNightVision = 376; // floats: 1 + Brightness setting (0 = not sent), night vision 0..1
     public const int OffHideToggle = 368; // int, renderer -> mod: bumped to show/hide Minecraft's window
+    public const int OffFullscreen = 380; // int: 1 = the player had Minecraft fullscreen; the mod keeps it windowed while we run
     public const int OffGuiStraight = 364; // int: 1 = the UI frame is straight alpha over Minecraft's own world (playing in its window)
     public const int OffFov = 360; // float: Minecraft's vertical field of view this frame, degrees (0: older mod)
 
@@ -283,6 +284,9 @@ public sealed unsafe class MinecraftBridge : IDisposable
 
     /// <summary>Asks the mod to show or hide Minecraft's own window (it remembers the choice).</summary>
     public void ToggleMinecraftWindow() => Interlocked.Increment(ref *(int*)(_p + BridgeProtocol.OffHideToggle));
+
+    /// <summary>True when the player had Minecraft fullscreen: the mod made it windowed, so this window goes fullscreen instead.</summary>
+    public bool MinecraftWantsFullscreen => MinecraftRunning && Volatile.Read(ref *(int*)(_p + BridgeProtocol.OffFullscreen)) == 1;
 
     public bool GuiStraightAlpha => *(int*)(_p + BridgeProtocol.OffGuiStraight) == 1;
 
