@@ -76,14 +76,9 @@ for the title screen), and opens the renderer window, which follows the game.
   `MinecraftMod\build\libs\*.jar` and Fabric API in your `mods` folder, start Minecraft, then run the renderer with
   `--live --no-launch`.
 
-More options (offline viewer for saves, cinematic and gameplay films, diagnostics) are in
+More options (offline viewer for saves and diagnostics) are in
 [`Realism/README.md`](Realism/README.md).
 
-## Comparison videos
-
-Record both windows side by side (for example in OBS with a 2560x720 canvas), then drag the recording onto
-`MakeComparison.bat`. It makes a video with Minecraft on the left of a slowly gliding divider and Realism Renderer
-on the right.
 
 ## How it works
 
